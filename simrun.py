@@ -3,6 +3,7 @@
 import numpy as np
 import string
 import random
+from IPython.display import display, Markdown
 
 class simple:
 
@@ -47,11 +48,6 @@ class simple:
         for i in range(self.num_obs)
 
         temp.append(''.join(random.choices(string.ascii_uppercase +string.digits, k = chars)))
-
-    
-
-
-
     
 class nested_pair :
 
@@ -89,7 +85,75 @@ class nested_pair :
 
 
 
+class data_tree:
 
+    def __init__(self,tree_struct={}):
+
+        self.tree_struct=tree_struct
+
+        # treet strcuture dictionary format :
+
+        # {'parent':{0 :[1,2],1:[3,4]}
+        # 'splits': {0 :['var_name',>= or <= or ==, split value of the var]....}} # split should be there for each parent
+        # 'obs_prop' : {2:0.2,3:0.3,4:0.6} # obs_prop should be present for all children which are not parent
+
+        self.parents=list(self.tree_struct['parents'].keys())
+
+        self.leafs=set([item for sublist in self.tree_struct.values() for item in sublist])-set(self.parents)
+
+    def tree_checks(self):
+
+        error=False
+
+        def parents_should_have_splits():
+
+            for p in self.parents:
+
+                if p not in self.tree_struct['splits'].keys():
+
+                    print(f'parent {p} has no split rules provided')
+        
+        def children_should_have_obs_prop():
+
+            for c in self.leafs :
+
+                if c not in self.tree_struct['obs_prop'].keys():
+
+                    print(f'leaf node {c} has no obseravtion proportion provided')
+
+        def obs_prop_should_add_up_to_one():
+
+            if sum(self.tree_struct['obs_prop'].values())!=1 :
+
+                print(f'population observations do not add upto 100%')
+        
+        parents_should_have_splits()
+        children_should_have_obs_prop()
+        obs_prop_should_add_up_to_one()
+
+    def print_tree(self):
+
+        # needs package nb-mermaid
+        # pip install nb-mermaid
+
+        # need to run '%reload_ext mermaid' to acitvate the extension in notebook for this function to work
+
+        tree_string='''mermaid
+                        graph LR
+
+                        A[Hard edge] -->B(Round edge)
+                        B --> C{Decision}
+                        C -->|One| D[Result one]
+                        C -->|Two| E[Result two]
+                    '''
+        display(tree_string)
+
+
+
+
+
+    
+        
 
     
 
