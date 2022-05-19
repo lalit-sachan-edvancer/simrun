@@ -45,9 +45,9 @@ class simple:
 
         temp=[]
 
-        for i in range(self.num_obs)
+        for i in range(self.num_obs):
 
-        temp.append(''.join(random.choices(string.ascii_uppercase +string.digits, k = chars)))
+            temp.append(''.join(random.choices(string.ascii_uppercase +string.digits, k = chars)))
     
 class nested_pair :
 
@@ -87,7 +87,7 @@ class nested_pair :
 
 class data_tree:
 
-    def __init__(self,tree_struct={}):
+    def __init__(self,tree_struct={'parents':{},'splits':{},'obs_prop':{}}):
 
         self.tree_struct=tree_struct
 
@@ -131,22 +131,6 @@ class data_tree:
         children_should_have_obs_prop()
         obs_prop_should_add_up_to_one()
 
-    def print_tree(self):
-
-        # needs package nb-mermaid
-        # pip install nb-mermaid
-
-        # need to run '%reload_ext mermaid' to acitvate the extension in notebook for this function to work
-
-        tree_string='''mermaid
-                        graph LR
-
-                        A[Hard edge] -->B(Round edge)
-                        B --> C{Decision}
-                        C -->|One| D[Result one]
-                        C -->|Two| E[Result two]
-                    '''
-        display(tree_string)
 
 
 
