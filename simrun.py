@@ -4,6 +4,8 @@ import numpy as np
 import string
 import random
 from IPython.display import display, Markdown
+from operator import le,ge,eq
+import copy
 
 class simple:
 
@@ -87,19 +89,25 @@ class nested_pair :
 
 class data_tree:
 
-    def __init__(self,tree_struct={'parents':{},'splits':{},'obs_prop':{}}):
+    def __init__(self,tree_struct={'parents':{},'splits':{},'obs_prop':{},'vars_ranges':{},'vars_type':{}}):
 
         self.tree_struct=tree_struct
 
         # treet strcuture dictionary format :
 
-        # {'parent':{0 :[1,2],1:[3,4]}
+        # 'parent':{0 :[1,2],1:[3,4]}
         # 'splits': {0 :['var_name',>= or <= or ==, split value of the var]....}} # split should be there for each parent
         # 'obs_prop' : {2:0.2,3:0.3,4:0.6} # obs_prop should be present for all children which are not parent
+        # 'vars_ranges' : allowed vars ranges on top of the tree , they will updated for each child as per the path to the child
 
         self.parents=list(self.tree_struct['parents'].keys())
 
-        self.leafs=set([item for sublist in self.tree_struct.values() for item in sublist])-set(self.parents)
+        self.leafs=set([item for sublist in self.tree_struct['parents'].values() for item in sublist])-set(self.parents)
+
+        self.compare={'>=':ge,'<=':le,'==':eq}
+
+        self.vars_ranges=self.tree_struct['vars_ranges']
+
 
     def tree_checks(self):
 
@@ -112,6 +120,8 @@ class data_tree:
                 if p not in self.tree_struct['splits'].keys():
 
                     print(f'parent {p} has no split rules provided')
+
+                    error=True
         
         def children_should_have_obs_prop():
 
@@ -121,15 +131,122 @@ class data_tree:
 
                     print(f'leaf node {c} has no obseravtion proportion provided')
 
+                    error=True
+
         def obs_prop_should_add_up_to_one():
 
-            if sum(self.tree_struct['obs_prop'].values())!=1 :
+            pop_sum=round(sum(self.tree_struct['obs_prop'].values()),2)
 
-                print(f'population observations do not add upto 100%')
+            if pop_sum!=1.0 :
+
+                print(f'population observations do not add upto 100%. it is {pop_sum*100}%')
+
+                error=True
         
         parents_should_have_splits()
         children_should_have_obs_prop()
         obs_prop_should_add_up_to_one()
+
+        if not error:
+            print('There were 0 errors found')
+
+    def find_parent(self,child):
+
+        lr={0:'left',1:'right'}
+        
+        for p in self.parents:
+
+            children=self.tree_struct['parents'][p]
+
+            if child in children:
+
+                return(p,lr[children.index(child)])
+
+
+    def find_child_path(self,child):
+
+        if child not in self.parents+list(self.leafs):
+
+            print('node is not found')
+            return None
+
+        path=[(child,0)]
+
+        reached_root=False
+
+        while not reached_root:
+
+            
+
+            parent=self.find_parent(path[0][0])
+            path=[parent]+path
+            child=parent
+            
+            if parent is None : 
+                reached_root=True
+            
+            
+
+        return path[1:-1]
+
+    def child_level_var_ranges(self,child):
+
+        path=self.find_child_path(child)
+
+        _ranges=copy.deepcopy(self.vars_ranges)
+        
+
+        for p in path:
+
+            split=self.tree_struct['splits'][p[0]]
+
+            _direction=p[1]
+            _var=split[0]
+            _sign=split[1]
+            _type= self.tree_struct['vars_type'][_var]
+            _val=split[2]
+
+            if _type=='cat':
+
+                if _direction=='left':
+
+                    _ranges[_var]=[_val]
+                else:
+                    _ranges[_var].remove(_val)
+            
+            if _type=='num':
+
+                if _sign==">=":
+
+                    if _direction=='left':
+
+                        _ranges[_var][0]=_val
+                    
+                    else:
+
+                        _ranges[_var][1]=_val
+
+                if _sign=="<=":
+                    
+                    if _direction=='right':
+
+                        _ranges[_var][0]=_val
+                    
+                    else:
+
+                        _ranges[_var][1]=_val
+
+        return(_ranges)
+
+
+
+
+
+
+
+    
+
+
 
 
 

@@ -1,6 +1,6 @@
-
+import os
+os.chdir(r"/Users/lalitsachan/Desktop/Edvancer_Repos_Git/simrun/")
 import simrun as sim
 
-a=sim.simrun(20)
+a=sim.data_tree()
 
-print(a.cat(dict_choices_prob={'a':0.2,'b':0.8}))
